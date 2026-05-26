@@ -364,13 +364,13 @@ def train_CFR(model: CFRNet,
               val_data: Dict = None,
               epochs: int = 1000,
               batch_size: int = 100,
-              learning_rate: float = 0.05,  # 修改为与TensorFlow相同的默认值
+              learning_rate: float = 0.05,  
               weight_decay: float = 0.0,
               alpha: float = 1e-4,
               # 新增学习率调度参数
-              lr_decay_rate: float = 0.95,  # 对应TensorFlow的lrate_decay
-              lr_decay_steps: int = 100,    # 对应TensorFlow的NUM_ITERATIONS_PER_DECAY
-              use_lr_scheduler: bool = True,  # 是否启用学习率调度
+              lr_decay_rate: float = 0.95,  
+              lr_decay_steps: int = 100,    
+              use_lr_scheduler: bool = True,  
               imb_type: str = 'mmd_lin',
               use_p_correction: bool = True,
               reweight_sample: bool = True,
