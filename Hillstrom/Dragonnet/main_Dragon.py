@@ -16,7 +16,7 @@ def data_loader(data_path):
     gamma_0 = data['gamma_0']
     gamma_1 = data['gamma_1']
     cate = data['cate']
-    # 划分训练集50%、测试集40%、验证集10%
+    
     X_train, X_temp, y_train, y_temp, T_train, T_temp = train_test_split(X, y, T, test_size=0.5, random_state=42)
     X_test, X_val, y_test, y_val, T_test, T_val = train_test_split(X_temp, y_temp, T_temp, test_size=0.2, random_state=42)
 
