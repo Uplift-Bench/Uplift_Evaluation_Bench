@@ -8,7 +8,9 @@
 ### Installation
 
 ```bash
+# The repository is relatively large, so cloning may take a while
 git clone https://github.com/YxuanYang/Uplift_Evaluation_Bench.git
+
 cd Uplift_Evaluation_Bench
 
 # Create and activate conda virtual environment
