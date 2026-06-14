@@ -16,7 +16,7 @@ def data_loader(data_path):
     gamma_0 = data['gamma_0']
     gamma_1 = data['gamma_1']
     cate = data['cate']
-    # 划分训练集50%、测试集40%、验证集10%
+
     X_train, X_temp, y_train, y_temp, T_train, T_temp = train_test_split(X, y, T, test_size=0.5, random_state=42)
     X_test, X_val, y_test, y_val, T_test, T_val = train_test_split(X_temp, y_temp, T_temp, test_size=0.2, random_state=42)
 
@@ -102,7 +102,7 @@ class DragonNet:
             t_test = torch.Tensor(t_test).reshape(-1, 1).to(self.device)
             train_dataset = TensorDataset(x_train, t_train, y_train)
             valid_dataset = TensorDataset(x_test, t_test, y_test)
-            # 修复：设置num_workers=0避免CUDA多进程错误
+           
             self.train_dataloader = DataLoader(train_dataset, batch_size=self.batch_size, num_workers=0)
             self.valid_dataloader = DataLoader(valid_dataset, batch_size=self.batch_size, num_workers=0)
         else:
@@ -110,7 +110,7 @@ class DragonNet:
             t = torch.Tensor(t).reshape(-1, 1).to(self.device)
             y = torch.Tensor(y).reshape(-1, 1).to(self.device)
             train_dataset = TensorDataset(x, t, y)
-            # 修复：设置num_workers=0避免CUDA多进程错误
+            
             self.train_dataloader = DataLoader(
                 train_dataset, batch_size=self.batch_size, num_workers=0
             )
@@ -148,7 +148,7 @@ class DragonNet:
                 loss = self.loss_f(y1, tr, t_pred, y0_pred, y1_pred, eps)
                 self.optim.zero_grad(set_to_none=True)
                 loss.backward()
-                # 梯度裁剪，防止极端样本导致梯度爆炸（仅Bank数据集需要）
+                
                 if hasattr(self, 'use_grad_clip') and self.use_grad_clip:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=0.3)
                 self.optim.step()
@@ -240,7 +240,7 @@ class DragonNet:
         with torch.no_grad():
             y0_pred, y1_pred, t_pred, eps = self.model(x)
             
-            # 计算个体治疗效应
+            
             ite = y1_pred.squeeze() - y0_pred.squeeze()
         
         return y0_pred.squeeze(), y1_pred.squeeze(), ite

@@ -121,35 +121,29 @@ def data_loader(data, random_seed=42, remove_outliers=False, lower_pct=1, upper_
     Args:
         data: 原始数据DataFrame
         random_seed: 随机种子
-        remove_outliers: 是否去除y的极端值（分treatment/control两组分别去除）
-        lower_pct: 下界百分位数（默认1%）
-        upper_pct: 上界百分位数（默认99%）
+        
     """
     raw_data = data.copy()
     
-    # 分 treatment/control 两组分别去除各自的极端值，避免引入组间偏差
+    
     if remove_outliers:
         treated = raw_data[raw_data['T'] == 1]
         control = raw_data[raw_data['T'] == 0]
         
-        # treatment 组去自己的极端值
         t_lower = treated['y'].quantile(lower_pct / 100)
         t_upper = treated['y'].quantile(upper_pct / 100)
         treated = treated[(treated['y'] >= t_lower) & (treated['y'] <= t_upper)]
         
-        # control 组去自己的极端值
         c_lower = control['y'].quantile(lower_pct / 100)
         c_upper = control['y'].quantile(upper_pct / 100)
         control = control[(control['y'] >= c_lower) & (control['y'] <= c_upper)]
         
-        # 合并回来，并用固定种子打乱顺序（避免前半全是treatment后半全是control）
         raw_data = pd.concat([treated, control]).sample(frac=1, random_state=random_seed).reset_index(drop=True)
     
     X = raw_data.drop(columns=['y','T','gamma_0','gamma_1','cate'])
     y = raw_data['y']
     T = raw_data['T']
    
-    # shuffle=True + random_state 确保每次run数据划分不同但可复现
     X_temp, X_test, y_temp, y_test, T_temp, T_test = train_test_split(X, y, T, test_size=0.3, random_state=random_seed, shuffle=True)
     X_train, X_val, y_train, y_val, T_train, T_val = train_test_split(X_temp, y_temp, T_temp, test_size=0.3, random_state=random_seed, shuffle=True)
     
@@ -157,14 +151,14 @@ def data_loader(data, random_seed=42, remove_outliers=False, lower_pct=1, upper_
 
 
 if __name__ == "__main__":
-    # meta-learner的参数 - 扩大调参空间以提高稳定性
-    xgb_opt_early_stopping_rounds = 3    # 原始5
-    y_opt_early_stopping_rounds = 3      # 原始5
+    
+    xgb_opt_early_stopping_rounds = 3    
+    y_opt_early_stopping_rounds = 3      
 
-    n_trials_xgb = 8         # 原始8
-    n_trials_lr = 8          # 原始8
-    n_trials_propensity = 8  # 原始8
-    trial_patience = 3        # 原始3
+    n_trials_xgb = 8         
+    n_trials_lr = 8          
+    n_trials_propensity = 8  
+    trial_patience = 3       
 
     run_times = 5  # PEHE指标运行次数
 

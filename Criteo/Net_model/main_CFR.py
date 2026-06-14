@@ -13,21 +13,16 @@ class CFRLoss(nn.Module):
     """
     CFR (Counterfactual Regression) 损失函数
     
-    对应TensorFlow训练代码中的损失组件：
-    - tot_loss: 总损失 (优化目标)
-    - pred_loss: 预测损失 (事实结果误差)
-    - imb_dist: 不平衡距离损失 (分布平衡)
-    - cf_error: 反事实误差 (仅评估用)
-    - weight_decay: 权重衰减损失
+   
     """
     
     def __init__(self, 
-                 loss_type: str = 'l2',           # 对应 FLAGS.loss
-                 alpha: float = 1e-4,             # 对应 FLAGS.p_alpha (不平衡正则化)
-                 lambda_reg: float = 0.0,         # 对应 FLAGS.p_lambda (权重衰减)
-                 imb_type: str = 'mmd_lin',       # 对应 FLAGS.imb_fun
-                 use_p_correction: bool = True,   # 对应 FLAGS.use_p_correction
-                 reweight_sample: bool = True):   # 对应 FLAGS.reweight_sample
+                 loss_type: str = 'l2',           
+                 alpha: float = 1e-4,            
+                 lambda_reg: float = 0.0,         
+                 imb_type: str = 'mmd_lin',       
+                 use_p_correction: bool = True,   
+                 reweight_sample: bool = True):   
         """
         Args:
             loss_type: 预测损失类型 ('l1', 'l2', 'log')
@@ -75,17 +70,14 @@ class CFRLoss(nn.Module):
         """
         if self.reweight_sample:
             # 重新加权样本以平衡处理组和对照组
-            # 对应 FLAGS.reweight_sample
             weights = t / p_t + (1 - t) / (1 - p_t)
             weights = weights / weights.mean()  # 归一化权重
             
             if self.loss_type == 'log':
-                # 对数损失需要特殊处理
                 loss = F.binary_cross_entropy_with_logits(
                     y_pred, y_true, weight=weights, reduction='mean'
                 )
             else:
-                # L1/L2损失
                 pointwise_loss = self.pred_loss_fn(y_pred, y_true, reduction='none')
                 loss = (pointwise_loss * weights).mean()
         else:
@@ -98,15 +90,14 @@ class CFRLoss(nn.Module):
                              t: torch.Tensor,
                              p_t: float) -> torch.Tensor:
         """
-        计算不平衡距离损失 (对应 CFR.imb_dist)
         
         Args:
-            representations: 表示层输出 (batch_size, dim)
-            t: 处理变量 (batch_size, 1)
+            representations: 表示层输出
+            t: 处理变量
             p_t: 处理概率
             
         Returns:
-            不平衡距离损失值
+            不平衡距离损失
         """
         t_flat = t.flatten()
         
@@ -138,8 +129,7 @@ class CFRLoss(nn.Module):
                           rep_treated: torch.Tensor,
                           rep_control: torch.Tensor,
                           p_t: float) -> torch.Tensor:
-        """计算线性MMD距离，使用util.py中的mmd2_lin函数"""
-        # 重构数据：合并处理组和对照组
+      
         rep_combined = torch.cat([rep_control, rep_treated], dim=0)
         
         # 创建处理变量向量：对照组为0，处理组为1
@@ -148,7 +138,6 @@ class CFRLoss(nn.Module):
             torch.ones(rep_treated.shape[0], 1, device=rep_treated.device)
         ], dim=0)
         
-        # 使用util.py中的mmd2_lin函数
         mmd = mmd2_lin(rep_combined, t_combined.flatten(), p_t)
         
         return mmd
@@ -158,8 +147,7 @@ class CFRLoss(nn.Module):
                         rep_control: torch.Tensor,
                         p_t: float,
                         sigma: float = 0.1) -> torch.Tensor:
-        """计算RBF MMD距离，使用util.py中的mmd2_rbf函数"""
-        # 重构数据：合并处理组和对照组
+      
         rep_combined = torch.cat([rep_control, rep_treated], dim=0)
         
         # 创建处理变量向量：对照组为0，处理组为1
@@ -168,7 +156,6 @@ class CFRLoss(nn.Module):
             torch.ones(rep_treated.shape[0], 1, device=rep_treated.device)
         ], dim=0)
         
-        # 使用util.py中的mmd2_rbf函数
         mmd = mmd2_rbf(rep_combined, t_combined.flatten(), p_t, sigma)
         
         return mmd
@@ -179,8 +166,7 @@ class CFRLoss(nn.Module):
                            p_t: float,
                            lam: float = 1.0,
                            its: int = 10) -> torch.Tensor:
-        """计算Wasserstein距离，使用util.py中的wasserstein函数"""
-        # 重构数据：合并处理组和对照组
+      
         rep_combined = torch.cat([rep_control, rep_treated], dim=0)
         
         # 创建处理变量向量：对照组为0，处理组为1
@@ -189,7 +175,6 @@ class CFRLoss(nn.Module):
             torch.ones(rep_treated.shape[0], 1, device=rep_treated.device)
         ], dim=0)
         
-        # 使用util.py中的wasserstein函数
         wass_dist, _ = wasserstein(rep_combined, t_combined.flatten(), p_t, lam, its)
         
         return wass_dist
@@ -237,10 +222,8 @@ class CFRLoss(nn.Module):
         Returns:
             包含各损失组件的字典
         """
-        # 1. 预测损失 (对应 CFR.pred_loss)
         pred_loss = self.compute_prediction_loss(y_pred, y_true, t, p_t)
         
-        # 2. 不平衡距离损失 (对应 CFR.imb_dist)
         imb_loss = self.compute_imbalance_loss(representations, t, p_t)
         
         # 3. 权重衰减损失
@@ -250,9 +233,9 @@ class CFRLoss(nn.Module):
         total_loss = pred_loss + self.alpha * imb_loss + weight_decay_loss
         
         return {
-            'total_loss': total_loss,      # 对应 CFR.tot_loss
-            'pred_loss': pred_loss,        # 对应 CFR.pred_loss  
-            'imb_loss': imb_loss,          # 对应 CFR.imb_dist
+            'total_loss': total_loss,      
+            'pred_loss': pred_loss,        
+            'imb_loss': imb_loss,          
             'weight_decay_loss': weight_decay_loss,
             'f_error': pred_loss,          # 事实误差别名
             'imb_err': imb_loss           # 不平衡误差别名
@@ -364,13 +347,12 @@ def train_CFR(model: CFRNet,
               val_data: Dict = None,
               epochs: int = 1000,
               batch_size: int = 100,
-              learning_rate: float = 0.05,  # 修改为与TensorFlow相同的默认值
+              learning_rate: float = 0.05,  
               weight_decay: float = 0.0,
               alpha: float = 1e-4,
-              # 新增学习率调度参数
-              lr_decay_rate: float = 0.95,  # 对应TensorFlow的lrate_decay
-              lr_decay_steps: int = 100,    # 对应TensorFlow的NUM_ITERATIONS_PER_DECAY
-              use_lr_scheduler: bool = True,  # 是否启用学习率调度
+              lr_decay_rate: float = 0.95,  
+              lr_decay_steps: int = 100,    
+              use_lr_scheduler: bool = True,  
               imb_type: str = 'mmd_lin',
               use_p_correction: bool = True,
               reweight_sample: bool = True,
@@ -379,7 +361,7 @@ def train_CFR(model: CFRNet,
               patience: int = 15,
               device: str = 'cuda' if torch.cuda.is_available() else 'cpu'):
     """
-    训练CFR模型 - 包含与TensorFlow版本相同的学习率调度
+    训练CFR模型 
     
     Args:
         model: CFR模型
@@ -387,12 +369,12 @@ def train_CFR(model: CFRNet,
         val_data: 验证数据字典（可选）
         epochs: 训练轮数
         batch_size: 批次大小
-        learning_rate: 初始学习率 (对应TensorFlow的FLAGS.lrate)
+        learning_rate: 初始学习率 
         weight_decay: 权重衰减
         alpha: 不平衡正则化权重
-        lr_decay_rate: 学习率衰减率 (对应TensorFlow的FLAGS.lrate_decay)
-        lr_decay_steps: 学习率衰减步数 (对应TensorFlow的NUM_ITERATIONS_PER_DECAY)
-        use_lr_scheduler: 是否启用学习率调度 (对应TensorFlow的exponential_decay)
+        lr_decay_rate: 学习率衰减率 
+        lr_decay_steps: 学习率衰减步数 
+        use_lr_scheduler: 是否启用学习率调度 
         imb_type: 不平衡惩罚类型
         use_p_correction: 是否使用处理概率校正
         reweight_sample: 是否重新加权样本
@@ -413,7 +395,6 @@ def train_CFR(model: CFRNet,
         t_val = torch.FloatTensor(val_data['t']).to(device)
         y_val = torch.FloatTensor(val_data['y']).to(device)
     
-    # 确保处理变量和标签的维度正确
     if len(t_train.shape) == 1:
         t_train = t_train.unsqueeze(1)
     if len(y_train.shape) == 1:
@@ -429,10 +410,8 @@ def train_CFR(model: CFRNet,
     p_treated = float(t_train.mean())
     print(f"Treatment probability: {p_treated:.4f}")
     
-    # 模型移动到设备
     model = model.to(device)
     
-    # 创建损失函数
     criterion = CFRLoss(
         loss_type=loss_type,
         alpha=alpha,
@@ -442,29 +421,22 @@ def train_CFR(model: CFRNet,
         reweight_sample=reweight_sample
     )
     
-    # 创建优化器
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
-    # 创建学习率调度器 (对应TensorFlow的exponential_decay)
     scheduler = None
     if use_lr_scheduler:
-        # 计算每个epoch需要多少步
         n_train = X_train.shape[0]
         steps_per_epoch = (n_train + batch_size - 1) // batch_size
         
-        # PyTorch的StepLR实现TensorFlow的exponential_decay with staircase=True
-        # 每lr_decay_steps步衰减一次，衰减率为lr_decay_rate
         scheduler = torch.optim.lr_scheduler.StepLR(
             optimizer, 
-            step_size=lr_decay_steps,  # 对应NUM_ITERATIONS_PER_DECAY
-            gamma=lr_decay_rate        # 对应FLAGS.lrate_decay
+            step_size=lr_decay_steps,  
+            gamma=lr_decay_rate        
         )
         print(f"Learning rate scheduler enabled: decay rate={lr_decay_rate}, decay steps={lr_decay_steps}")
     
-    # 创建早停器
     early_stopper = EarlyStopper(patience=patience)
     
-    # 训练历史记录
     training_history = {
         'total_loss': [],
         'pred_loss': [],
@@ -487,13 +459,11 @@ def train_CFR(model: CFRNet,
     print(f"Imbalance type: {imb_type}")
     print("-" * 50)
     
-    # 全局步数计数器 (对应TensorFlow的global_step)
     global_step = 0
     
     for epoch in range(epochs):
         model.train()
         
-        # 随机打乱训练数据
         indices = torch.randperm(n_train)
         epoch_losses = []
         
@@ -523,7 +493,6 @@ def train_CFR(model: CFRNet,
             loss_dict['total_loss'].backward()
             optimizer.step()
             
-            # 更新学习率调度器 (每步更新，对应TensorFlow的global_step)
             if scheduler is not None:
                 scheduler.step()
             

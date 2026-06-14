@@ -125,7 +125,7 @@ class TARLoss(nn.Module):
         # 2. 权重衰减损失
         weight_decay_loss = self.compute_weight_decay_loss(model) if model else 0.0
         
-        # 3. 总损失 (TARNet: 没有不平衡正则化项)
+     
         total_loss = pred_loss + weight_decay_loss
         
         return {
@@ -345,12 +345,11 @@ def train_TAR(model: TARNet,
               val_data: Dict = None,
               epochs: int = 1000,
               batch_size: int = 100,
-              learning_rate: float = 0.05,  # 修改为与TensorFlow相同的默认值
+              learning_rate: float = 0.05,  
               weight_decay: float = 0.0,
-              # 新增学习率调度参数
-              lr_decay_rate: float = 0.95,  # 对应TensorFlow的lrate_decay
-              lr_decay_steps: int = 100,    # 对应TensorFlow的NUM_ITERATIONS_PER_DECAY
-              use_lr_scheduler: bool = True,  # 是否启用学习率调度
+              lr_decay_rate: float = 0.95,  
+              lr_decay_steps: int = 100,    
+              use_lr_scheduler: bool = True,  
               use_p_correction: bool = True,
               reweight_sample: bool = True,
               loss_type: str = 'l2',
@@ -359,7 +358,7 @@ def train_TAR(model: TARNet,
               patience: int = 15,
               device: str = 'cuda' if torch.cuda.is_available() else 'cpu'):
     """
-    训练TARNet模型 - 包含与TensorFlow版本相同的学习率调度
+    训练TARNet模型 
     
     Args:
         model: TARNet模型
@@ -367,11 +366,11 @@ def train_TAR(model: TARNet,
         val_data: 验证数据字典（可选）
         epochs: 训练轮数
         batch_size: 批次大小
-        learning_rate: 初始学习率 (对应TensorFlow的FLAGS.lrate)
+        learning_rate: 初始学习率 
         weight_decay: 权重衰减
-        lr_decay_rate: 学习率衰减率 (对应TensorFlow的FLAGS.lrate_decay)
-        lr_decay_steps: 学习率衰减步数 (对应TensorFlow的NUM_ITERATIONS_PER_DECAY)
-        use_lr_scheduler: 是否启用学习率调度 (对应TensorFlow的exponential_decay)
+        lr_decay_rate: 学习率衰减率 
+        lr_decay_steps: 学习率衰减步数 
+        use_lr_scheduler: 是否启用学习率调度 
         use_p_correction: 是否使用处理概率校正
         reweight_sample: 是否重新加权样本
         loss_type: 损失函数类型
@@ -382,7 +381,6 @@ def train_TAR(model: TARNet,
     Returns:
         training_history: 训练历史记录
     """
-    # 数据准备
     X_train = torch.FloatTensor(train_data['x']).to(device)
     t_train = torch.FloatTensor(train_data['t']).to(device)
     y_train = torch.FloatTensor(train_data['y']).to(device)
@@ -392,7 +390,6 @@ def train_TAR(model: TARNet,
         t_val = torch.FloatTensor(val_data['t']).to(device)
         y_val = torch.FloatTensor(val_data['y']).to(device)
     
-    # 确保处理变量和标签的维度正确
     if len(t_train.shape) == 1:
         t_train = t_train.unsqueeze(1)
     if len(y_train.shape) == 1:
@@ -404,7 +401,6 @@ def train_TAR(model: TARNet,
         if len(y_val.shape) == 1:
             y_val = y_val.unsqueeze(1)
     
-    # 计算全局处理概率
     p_treated_global = float(t_train.mean())
     print(f"Global treatment probability: {p_treated_global:.4f}")
     if use_batch_p:
@@ -426,19 +422,16 @@ def train_TAR(model: TARNet,
     # 创建优化器
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
-    # 创建学习率调度器 (对应TensorFlow的exponential_decay)
     scheduler = None
     if use_lr_scheduler:
         # 计算每个epoch需要多少步
         n_train = X_train.shape[0]
         steps_per_epoch = (n_train + batch_size - 1) // batch_size
         
-        # PyTorch的StepLR实现TensorFlow的exponential_decay with staircase=True
-        # 每lr_decay_steps步衰减一次，衰减率为lr_decay_rate
         scheduler = torch.optim.lr_scheduler.StepLR(
             optimizer, 
-            step_size=lr_decay_steps,  # 对应NUM_ITERATIONS_PER_DECAY
-            gamma=lr_decay_rate        # 对应FLAGS.lrate_decay
+            step_size=lr_decay_steps,  
+            gamma=lr_decay_rate        
         )
         print(f"Learning rate scheduler enabled: decay rate={lr_decay_rate}, decay steps={lr_decay_steps}")
     
@@ -466,7 +459,6 @@ def train_TAR(model: TARNet,
     print(f"TARNet特点: 无不平衡正则化 (α = 0)")
     print("-" * 50)
     
-    # 全局步数计数器 (对应TensorFlow的global_step)
     global_step = 0
     
     for epoch in range(epochs):
@@ -508,12 +500,10 @@ def train_TAR(model: TARNet,
             # 反向传播
             optimizer.zero_grad(set_to_none=True)
             loss_dict['total_loss'].backward()
-            # 梯度裁剪，防止极端样本导致梯度爆炸（仅Bank数据集需要）
             if hasattr(model, 'use_grad_clip') and model.use_grad_clip:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             
-            # 更新学习率调度器 (每步更新，对应TensorFlow的global_step)
             if scheduler is not None:
                 scheduler.step()
             

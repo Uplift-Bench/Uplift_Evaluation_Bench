@@ -13,7 +13,6 @@ import warnings
 warnings.filterwarnings('ignore')
 import pandas as pd
 
-# Windows下num_workers>0可能导致多进程问题，自动适配
 _NUM_WORKERS = 0 if platform.system() == 'Windows' else 2
 
 def set_seed(seed=42):
@@ -81,10 +80,7 @@ def optimize_cfr(X_train: np.ndarray,
     """
     CFR模型精简网格搜索调参并返回最优参数
     
-    推荐配置：只搜索最重要的参数
-    - 高重要性参数（搜索）：alpha, rep_hidden_dim, hyp_hidden_dim
-    - 中等重要性参数（固定）：batch_size, rep_layers, hyp_layers
-    - 低重要性参数（固定）：dropout_rate, learning_rate, weight_decay等
+    
     
     Args:
         n_runs: 每个参数组合运行的次数，用于取平均值
@@ -108,7 +104,6 @@ def optimize_cfr(X_train: np.ndarray,
     param_values = list(param_grid.values())
     param_combinations = list(itertools.product(*param_values))
     
-    print(f"CFR精简网格搜索开始 - 总参数组合数: {len(param_combinations)}")
     print(f"每个组合运行次数: {n_runs}")
     print(f"搜索参数: {list(param_grid.keys())}")
     print(f"搜索早停耐心值: {search_patience}")
@@ -346,10 +341,7 @@ def optimize_tar(X_train: np.ndarray,
     """
     TARNet模型精简网格搜索调参并返回最优参数
     
-    推荐配置：只搜索最重要的参数
-    - 高重要性参数（搜索）：rep_hidden_dim, hyp_hidden_dim, batch_size
-    - 中等重要性参数（固定）：rep_layers, hyp_layers
-    - 低重要性参数（固定）：dropout_rate, learning_rate, weight_decay等
+    
     
     Args:
         n_runs: 每个参数组合运行的次数，用于取平均值
@@ -372,7 +364,6 @@ def optimize_tar(X_train: np.ndarray,
     param_values = list(param_grid.values())
     param_combinations = list(itertools.product(*param_values))
     
-    print(f"TARNet精简网格搜索开始 - 总参数组合数: {len(param_combinations)}")
     print(f"每个组合运行次数: {n_runs}")
     print(f"搜索参数: {list(param_grid.keys())}")
     print(f"搜索早停耐心值: {search_patience}")
@@ -388,7 +379,6 @@ def optimize_tar(X_train: np.ndarray,
     
     print(f"[TARNet搜索] y标准化: mean={y_mean:.4f}, std={y_std_val:.4f}")
     
-    # 准备数据（使用标准化后的 y）
     train_data = {
         'x': X_train.astype(np.float32),
         'y': ((y_train_raw - y_mean) / y_std_val).astype(np.float32),
@@ -411,11 +401,11 @@ def optimize_tar(X_train: np.ndarray,
     def train_single_run(params_dict):
         """单次训练运行"""
         try:
-            # 固定参数（batch_size固定1024，learning_rate由搜索决定）
+            
             fixed_params = {
                 'rep_layers': 3,
                 'hyp_layers': 3,
-                'batch_size': 1024,          # 增大batch_size加速GPU利用率
+                'batch_size': 1024,          
                 'dropout_rate': 0.1,
                 'weight_init_std': 0.1,
                 'weight_decay': 1e-4,
@@ -597,7 +587,7 @@ def optimize_tar(X_train: np.ndarray,
         'loss_type': 'l2',
         'reweight_sample': False,
         'use_p_correction': False,
-        **best_params  # 包含搜索到的 learning_rate, rep_hidden_dim, hyp_hidden_dim
+        **best_params  
     }
     
     return final_best_params
@@ -616,9 +606,7 @@ def optimize_dragonnet(X_train: np.ndarray,
     """
     DragonNet模型精简网格搜索调参并返回最优参数
     
-    推荐配置：只搜索最重要的参数
-    - 高重要性参数（搜索）：alpha, beta, shared_hidden, outcome_hidden, batch_size
-    - 低重要性参数（固定）：learning_rate, loss_type, data_loader_num_workers
+    
     
     Args:
         n_runs: 每个参数组合运行的次数，用于取平均值
@@ -629,7 +617,6 @@ def optimize_dragonnet(X_train: np.ndarray,
     """
     import itertools
     
-    # 针对 Bank 数据集优化的搜索空间
     param_grid = {
         'learning_rate': [5e-5, 1e-4],
         'shared_hidden': [64, 100],
@@ -639,17 +626,14 @@ def optimize_dragonnet(X_train: np.ndarray,
         'batch_size': [1024],
     }
     
-    # 生成所有参数组合
     param_names = list(param_grid.keys())
     param_values = list(param_grid.values())
     param_combinations = list(itertools.product(*param_values))
     
-    print(f"DragonNet精简网格搜索开始 - 总参数组合数: {len(param_combinations)}")
     print(f"每个组合运行次数: {n_runs}")
     print(f"搜索参数: {list(param_grid.keys())}")
     print(f"搜索早停耐心值: {search_patience}")
     
-    # 对 y 做标准化
     y_train_raw = y_train.values if hasattr(y_train, 'values') else y_train
     y_val_raw = y_val.values if hasattr(y_val, 'values') else y_val
     
@@ -660,7 +644,6 @@ def optimize_dragonnet(X_train: np.ndarray,
     
     print(f"[DragonNet搜索] y标准化: mean={y_mean:.4f}, std={y_std_val:.4f}")
     
-    # 准备数据（使用标准化后的 y）
     train_data = {
         'x': X_train.astype(np.float32),
         'y': ((y_train_raw - y_mean) / y_std_val).astype(np.float32),
@@ -683,7 +666,6 @@ def optimize_dragonnet(X_train: np.ndarray,
     def train_single_run(params_dict):
         """单次训练运行"""
         try:
-            # 固定参数 + 搜索参数
             fixed_params = {
                 'loss_type': 'tarreg',
                 'data_loader_num_workers': 0
@@ -818,12 +800,10 @@ def optimize_dragonnet(X_train: np.ndarray,
             print(f"  *** 优化早停触发! 连续 {search_patience} 轮无改善，提前停止搜索 ***")
             break
     
-    print(f"\nDragonNet精简网格搜索完成!")
     print(f"搜索了 {i+1}/{len(param_combinations)} 个参数组合")
     print(f"最优参数: {best_params}")
     print(f"最优平均损失: {best_avg_loss:.6f}")
     
-    # 返回最优参数（包含固定参数 + 搜索到的最优参数）
     final_best_params = {
         'loss_type': 'tarreg',
         'data_loader_num_workers': 0,
@@ -963,7 +943,6 @@ def train_tar(X_train: np.ndarray,
     Returns:
         DataFrame: 包含模型名称和CATE预测值的DataFrame
     """
-    # 对 y 做标准化（解决 loss 过大导致梯度不稳定的问题）
     y_train_raw = y_train.values if hasattr(y_train, 'values') else y_train
     y_val_raw = y_val.values if hasattr(y_val, 'values') else y_val
     
@@ -977,7 +956,6 @@ def train_tar(X_train: np.ndarray,
     
     print(f"[TARNet] y标准化: mean={y_mean:.4f}, std={y_std_val:.4f}")
     
-    # 准备训练数据（使用标准化后的 y）
     train_data = {
         'x': X_train.astype(np.float32),
         'y': y_train_scaled,
@@ -1006,7 +984,7 @@ def train_tar(X_train: np.ndarray,
         activation=best_params['activation']
     ).to(device)
     
-    # Bank 数据集启用梯度裁剪
+  
     model.use_grad_clip = True
     
     # 训练模型
@@ -1051,7 +1029,7 @@ def train_tar(X_train: np.ndarray,
         _, y0_pred = model(X_test_tensor, torch.zeros_like(T_test_tensor))
         _, y1_pred = model(X_test_tensor, torch.ones_like(T_test_tensor))
         
-        # 计算CATE（反标准化：乘回 y_std）
+        
         cate_pred = (y1_pred - y0_pred) * y_std_val
         
         # 转换为numpy数组
@@ -1105,7 +1083,7 @@ def train_dragonnet(X_train: np.ndarray,
     Returns:
         DataFrame: 包含模型名称和CATE预测值的DataFrame
     """
-    # 对 y 做标准化
+   
     y_train_raw = y_train.values if hasattr(y_train, 'values') else y_train
     
     y_mean = float(np.mean(y_train_raw))
@@ -1117,7 +1095,7 @@ def train_dragonnet(X_train: np.ndarray,
     
     print(f"[DragonNet] y标准化: mean={y_mean:.4f}, std={y_std_val:.4f}")
     
-    # 准备训练数据（使用标准化后的 y）
+   
     train_data = {
         'x': X_train.astype(np.float32),
         'y': y_train_scaled,
@@ -1141,7 +1119,7 @@ def train_dragonnet(X_train: np.ndarray,
         device=device
     )
     
-    # Bank 数据集启用梯度裁剪
+   
     model.use_grad_clip = True
     
     # 训练模型
@@ -1163,7 +1141,7 @@ def train_dragonnet(X_train: np.ndarray,
         # DragonNet直接输出y0和y1的预测
         y0_pred, y1_pred, t_pred, eps = model.model(X_test_tensor)
         
-        # 计算CATE（反标准化：乘回 y_std）
+        
         cate_pred = (y1_pred - y0_pred) * y_std_val
         
         # 转换为numpy数组

@@ -10,11 +10,7 @@ import os
 import faiss
 import time
 
-# 旋钮1 xi
-# 旋钮2 beat_nt
-# 旋钮3 beat_ny
-# 旋钮4 m
-# 旋钮5 select_omega
+
 def sigmoid(prob, xi):
     return 1/(1+np.exp(-xi * prob))
 
@@ -61,10 +57,10 @@ def load_and_preprocess_data_Criteo(data_path: str = r"data/Criteo/criteo-uplift
     """
     X = pd.read_csv(data_path)
     
-    # 删除非特征列（treatment, outcome, exposure等）
+    
     X = X.drop(columns=['treatment', 'conversion', 'visit', 'exposure'])
     
-    # f0~f11 都是数值型特征
+    
     NUMERIC_COLS = [f'f{i}' for i in range(12)]
     X = X[NUMERIC_COLS]
     
@@ -90,7 +86,7 @@ def load_and_preprocess_data(dataset_name='Hillstrom'):
 
 
 def neighbour_set(data, save_distance_matrix=False):
-    """使用FAISS加速的邻居集合计算函数，返回行归一化CSR稀疏矩阵"""
+    
     
     delta=0.005
     
@@ -113,7 +109,7 @@ def neighbour_set(data, save_distance_matrix=False):
         print("使用FAISS CPU索引")
         search_index = index_flat
     
-    # range_search: FAISS使用L2平方距离，阈值为delta^2
+    
     print("执行range_search...")
     t0 = time.time()
     lims, D, I = search_index.range_search(data_np, delta ** 2)
@@ -130,7 +126,7 @@ def neighbour_set(data, save_distance_matrix=False):
     adj.setdiag(0)
     adj.eliminate_zeros()
     
-    # 行归一化（每行除以邻居数 = 求邻居均值）
+    
     row_sums = np.array(adj.sum(axis=1)).flatten()
     row_sums[row_sums == 0] = 1
     adj_norm = diags(1.0 / row_sums).dot(adj)
@@ -153,7 +149,7 @@ def T_generate(data,xi,beta_nt,adj_norm=None):
     if adj_norm is None:
         adj_norm , _ = neighbour_set(data)
     
-    # 稀疏矩阵乘法：一次性计算所有点的邻居sigma均值
+    
     sigma_i_array = np.array(sigma_i).flatten()
     sigma_j = np.array(adj_norm.dot(sigma_i_array)).flatten()
 

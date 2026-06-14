@@ -66,7 +66,7 @@ def model_prepare(model_name, X_train, y_train, X_val, y_val, n_trials=50, xgb_o
         study = optuna.create_study(direction='maximize', sampler=TPESampler(seed=42))
         
         # 记录最佳值和trial计数器
-        best_value = float('-inf')  # 因为是maximize，所以初始值为负无穷
+        best_value = float('-inf')  
         trial_counter = 0
         
         def objective_with_trial_stopping(trial):
@@ -96,7 +96,7 @@ def model_prepare(model_name, X_train, y_train, X_val, y_val, n_trials=50, xgb_o
         study = optuna.create_study(direction='maximize', sampler=TPESampler(seed=42))
         
         # 记录最佳值和trial计数器
-        best_value = float('-inf')  # 因为是maximize，所以初始值为负无穷
+        best_value = float('-inf')  
         trial_counter = 0
         
         def objective_with_trial_stopping(trial):
