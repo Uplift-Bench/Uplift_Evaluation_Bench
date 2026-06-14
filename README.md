@@ -21,55 +21,6 @@ conda activate uplift
 pip install -r requirements.txt
 ```
 
-## Project Structure
-
-```
-Uplift_Evaluation_Bench/
-├── Bank/                            
-│   ├── DGP.py                       
-│   ├── main_experiment_Bank.py      
-│   ├── meta_learner.py              
-│   ├── Net_optimization_Bank.py     
-│   ├── Net_model/                   
-│   │   ├── main_TAR.py              
-│   │   └── base_net.py              
-│   └── Dragonnet/                
-│       ├── Dragonnet_model.py       
-│       └── main_Dragon.py           
-├── Hillstrom/                       
-│   ├── DGP.py
-│   ├── main_experiment_Hillstrom.py
-│   ├── meta_learner.py
-│   ├── Net_optimization_Hillstrom.py
-│   ├── Net_model/
-│   └── Dragonnet/
-├── data/                            
-│   ├── Bank/
-│   │   ├── bank-additional-full.csv # Raw data
-│   │   ├── hidden/                  
-│   │   ├── measurement/            
-│   │   ├── selection/              
-│   │   └── spillover/             
-│   └── Hillstrom/
-│       ├── Kevin_Hillstrom_...csv   # Raw data
-│       ├── hidden/
-│       ├── measurement/
-│       ├── selection/
-│       └── spillover/
-├── output_data/                     # Our original experiment output data
-│   ├── Bank/
-│   │   ├── hidden/
-│   │   ├── measurement/
-│   │   ├── selection/
-│   │   └── spillover/
-│   └── Hillstrom/
-│       ├── hidden/
-│       ├── measurement/
-│       ├── selection/
-│       └── spillover/
-├── requirements.txt
-└── README.md
-```
 
 ## Supported Models
 
