@@ -300,7 +300,6 @@ if __name__ == "__main__":
     dataset_name = 'Criteo'
     data = load_and_preprocess_data(dataset_name=dataset_name)
     
-    # 计算邻居字典（只算一次，作为中间变量传递复用）
     adj_norm, _ = neighbour_set(data, save_distance_matrix=False)
     
     # 固定参数

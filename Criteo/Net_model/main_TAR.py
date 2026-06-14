@@ -97,7 +97,6 @@ class TARLoss(nn.Module):
         Returns:
             权重衰减损失值
         """
-        # 推荐使用优化器的weight_decay参数，这里返回0
         return torch.tensor(0.0, device=next(model.parameters()).device)
     
     def forward(self, 

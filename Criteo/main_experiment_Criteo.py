@@ -8,7 +8,6 @@ import os
 import torch
 from sklearn.model_selection import train_test_split
 from Net_optimization_Criteo import *
-from metric import *
 import warnings
 import random
 warnings.filterwarnings('ignore')
@@ -163,9 +162,9 @@ if __name__ == "__main__":
     run_times = 5  # PEHE指标运行次数
 
     # 模型运行开关
-    run_meta_learners = True    # 跑 meta-learner (S/T/X/R/U/DR/RA)
-    run_tarnet = True          # 跑 TARNet
-    run_dragonnet = True        # 跑 DragonNet（调好后设为True）
+    run_meta_learners = True    
+    run_tarnet = True          
+    run_dragonnet = True        
 
   
     # Net model parameters 
@@ -447,7 +446,7 @@ if __name__ == "__main__":
             # 保存结果
             # 解析key获取bias类型和程度信息
             key_parts = key.split('_')
-            bias_type = key_parts[0]  # measurement, selection, spillover
+            bias_type = key_parts[0]  
             
             # 从key中提取程度信息
             if len(key_parts) > 1:
