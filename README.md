@@ -84,11 +84,7 @@ python Criteo/main_experiment_Criteo.py
 
 ## Reproducibility
 
-Both datasets have fixed the main random seeds, but Optuna hyperparameter search itself has inherent randomness (e.g., TPE sampling). The optimal hyperparameters selected between different runs may vary slightly, resulting in minor fluctuations in the final results.
-
-- **Bank dataset**: Some models' numerical values and rankings may show slight fluctuations, but the overall trend conclusions under each bias scenario remain unaffected.
-- **Hillstrom dataset**: Some models' numerical values and rankings may show slight fluctuations, but the overall trend conclusions under each bias scenario remain unaffected.
-- **Criteo dataset**: Some models' numerical values and rankings may show slight fluctuations, but the overall trend conclusions under each bias scenario remain unaffected.
+All datasets have fixed the main random seeds, but Optuna hyperparameter search itself has inherent randomness (e.g., TPE sampling). The optimal hyperparameters selected between different runs may vary slightly, resulting in minor fluctuations in the final results. Some models' numerical values and rankings may show slight fluctuations, but the overall trend conclusions under each bias scenario remain unaffected.
 
 ## Appendix
 
