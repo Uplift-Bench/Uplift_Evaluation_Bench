@@ -9,7 +9,7 @@
 
 ```bash
 # The repository is relatively large, so cloning may take a while
-git clone https://github.com/YxuanYang/Uplift_Evaluation_Bench.git
+git clone https://github.com/Uplift-Bench/Uplift_Evaluation_Bench.git
 
 cd Uplift_Evaluation_Bench
 
@@ -22,7 +22,7 @@ pip install -r requirements.txt
 ```
 
 
-## Supported Models
+## Models
 
 ### Meta-Learners
 
@@ -58,9 +58,11 @@ cd Uplift_Evaluation_Bench
 python Bank/DGP.py
 # Run DGP for Hillstrom dataset
 python Hillstrom/DGP.py
+# Run DGP for Criteo dataset
+python Criteo/DGP.py
 ```
 
-Generated data is saved in the corresponding bias subdirectories under `data/Bank/` or `data/Hillstrom/`.
+Generated data is saved in the corresponding bias subdirectories under `data/Bank/`, `data/Hillstrom/`, or `data/Criteo/`.
 
 ### Run Experiments
 
@@ -72,6 +74,8 @@ cd Uplift_Evaluation_Bench
 python Bank/main_experiment_Bank.py
 # Run main experiment for Hillstrom dataset
 python Hillstrom/main_experiment_Hillstrom.py
+# Run main experiment for Criteo dataset
+python Criteo/main_experiment_Criteo.py
 ```
 
 `output_data/` already contains our original experiment output data, which can be used directly for result comparison and analysis.
@@ -84,6 +88,11 @@ Both datasets have fixed the main random seeds, but Optuna hyperparameter search
 
 - **Bank dataset**: Some models' numerical values and rankings may show slight fluctuations, but the overall trend conclusions under each bias scenario remain unaffected.
 - **Hillstrom dataset**: Some models' numerical values and rankings may show slight fluctuations, but the overall trend conclusions under each bias scenario remain unaffected.
+- **Criteo dataset**: Some models' numerical values and rankings may show slight fluctuations, but the overall trend conclusions under each bias scenario remain unaffected.
+
+## Appendix
+
+The `Appendix/` folder contains supplementary materials for the paper.
 
 ## Datasets
 
@@ -91,7 +100,20 @@ Both datasets have fixed the main random seeds, but Optuna hyperparameter search
 |---------|--------|-------------|
 | Bank | [UCI Bank Marketing](https://archive.ics.uci.edu/dataset/222/bank+marketing) | Bank marketing dataset |
 | Hillstrom | [Kevin Hillstrom E-Mail Analytics](https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html) | E-commerce email marketing dataset |
+| Criteo | [Criteo Large-Scale ITE Benchmark](https://github.com/criteo-research/large-scale-ITE-UM-benchmark) | Large-scale uplift modeling dataset |
 
-## License
+## Citation
+
+If you find this work useful, please cite our paper:
+
+```bibtex
+@article{yang2026evaluating,
+  title={Evaluating Uplift Modeling under Structural Biases: Insights into Metric Stability and Model Robustness},
+  author={Yang, Yuxuan and Liu, Dugang and Huang, Yiyan},
+  journal={arXiv preprint arXiv:2603.20775},
+  year={2026}
+}
+```
+
 
 
