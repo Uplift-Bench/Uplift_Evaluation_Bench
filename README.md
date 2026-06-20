@@ -1,5 +1,4 @@
-# Evaluating Uplift Modeling under Structural Biases:  
-Insights into Metric Stability and Model Robustness
+# Evaluating Uplift Modeling under Structural Biases: Insights into Metric Stability and Model Robustness
 
 *This paper is accepted by KDD 2026.*
 
